@@ -1,6 +1,6 @@
 ---
 title: "Proyecto Gestión Financiera"
-author: "Julio Tejero"
+author: "José Pedro Montes"
 format: html
 editor: visual
 bibliography: references.bib
@@ -25,211 +25,169 @@ Fecha de entrega límite: Miércoles 25 de Septiembre 23:59.
 
 ### Definición
 
-El activo elegido fue Enel Chile S.A. La compañía es una extensión de Enel, empresa italiana. Se dedica a generación, distribución y transformación de energía a lo largo de todo el país.
+El sector financiero es uno de los principales puntos de un país, estos dan la opción de realizar de una manera más expedita la transferencia de fondos, disposición de créditos y realización de gestiones de activos. El Banco Santander en Chile es uno de los principales en este país, teniendo gran participación en el mercado, donde este ofrece variados productos y servicios a las personas y empresas. Su presencia significativa en el mercado chileno lo convierte en una pieza clave para el desarrollo económico del país.
 
-Enel Chile se formó a partir de una reestructuración que comenzó en el año 2015, en ese entonces la empresa se llamaba Enersis Américas. En esta reestructuración, se aprobó la fusión de las compañías Enersis Chile, Endesa Chile y Chilectra en una estrategia denominada "La Fusión". En este mismo proceso se procedió al cambio de nombre a la hoy conocida Enel Chile S.A.
+```{# Parámetros ajustados para Banco Santander-Chile}
+# Basado en los datos de la imagen
+S0 = 19.97  # Precio de cierre de la acción
+K = 20  # Strike price (Precio de ejercicio)
+r = 1.01  # Asumimos una tasa de interés libre de riesgo de 1%
+u = 1.5  # Crecimiento esperado en el escenario bueno (50%)
+d = 0.5  # Caída esperada en el escenario malo (50%)
 
-Enel Chile es la mayor suministradora de energía del país, debido a esto en relevante exponer los datos nacionales de uso de electricidad. En el paper "Consumption-based carbon emissions, renewable energy consumption, financial development and economic growth in Chile" de @kirikkaleli2021 se expone un análisis descriptivo de los consumos nacionales de electricidad, el cual se presenta a continuación:
+# Extender la matriz W para incluir la opción de compra
+q3 = symbols('q3')  # Precio de la opción
+W = Matrix([[-B, -S0, -q3],
+            [r*B, u*S0, max(0, u*S0 - K)],
+            [r*B, d*S0, max(0, d*S0 - K)]])
+W
 
-[![Tabla 2 en](Data/Screenshot%202023-09-28%20at%2015.51.18.png){fig-align="center"}](https://doi.org/10.1002/bse.2945)
+from sympy import *
+init_printing()
 
-En donde:
+# Parámetros del bono (B) y tasa libre de riesgo (r)
+r, B = symbols('r B')
 
--   CCO2: Emisiones de carbonos basadas en el consumo de energía medida en millones de toneladas de CO2.
+# Parámetros de la acción: crecimiento en estado bueno (u) y malo (d)
+u, d, S0 = symbols('u d S0')
+S0 = 19.97  # Precio de cierre de la acción
+K = 20  # Strike price (Precio de ejercicio)
+r = 1.01  # Asumimos una tasa de interés libre de riesgo de 1%
+u = 1.5  # Crecimiento esperado en el escenario bueno (50%)
+d = 0.5  # Caída esperada en el escenario malo (50%)
 
--   GDP: Crecimiento de la economía medido en el PIB per cápita.
+# Definimos la matriz W para la acción, bono y opción
+W = Matrix([[-B, -S0], [r*B, u*S0],[r*B, d*S0]])
+W
 
--   ELE: Consumo eléctrico medido en Kw/h.
+#1. ¿Cuál es el precio de los activos no derivados?
+precio_accion = S0
 
--   REN: COnsumo de energía renovables medido en Tw/h.
+#2. ¿Cuál es el retorno de los activos no derivados?
 
--   FD: Crecimiento financiero, medida amplia para el desarrollo financiero teniendo en cuenta su eficiencia, accesibilidad y profundidad.
+retorno_accion_bueno = u * S0
+retorno_accion_malo = d * S0
 
-```{r ETL}
-#| echo: false
-# Alternativamente Use FANG data set
-# data("FANG") 
-end <- as_date("2022-12-31")
-# Get AAPL and AMZN Stock Prices
-# AAPL <- tq_get("AAPL", get = "stock.prices", from = "2015-09-01", to = end)
-# AMZN <- tq_get("AMZN", get = "stock.prices", from = "2000-01-01", to = end)
-ENELCHILE <- tq_get("ENELCHILE.SN", get = "stock.prices", from = "2017-01-01", to = end)
-ENELAM <- tq_get("ENELAM.SN", get = "stock.prices", from = "2017-01-01", to = end)
-AESANDES <- tq_get("AESANDES.SN", get = "stock.prices", from = "2017-01-01", to = end)
-ECL <- tq_get("ECL.SN", get = "stock.prices", from = "2017-01-01", to = end)
-CL <- rbind(ENELCHILE,ENELAM,AESANDES,ECL)
+(retorno_accion_bueno, retorno_accion_malo)
+
+pi_u, pi_d = symbols('pi_u pi_d')
+pi = Matrix([[1],[pi_u],[pi_d]])
+pi
+
+
+import math
+
+# Parámetros
+S0 = 19.97  # Precio de la acción
+K = 20      # Precio de ejercicio
+u = 1.5     # Factor de subida
+d = 0.5     # Factor de bajada
+r = 0.01    # Tasa libre de riesgo
+T = 1       # Un periodo (un año)
+
+# Calcular probabilidades neutrales al riesgo
+q = (math.exp(r * T) - d) / (u - d)
+
+# Precio de la acción al final del periodo
+Su = S0 * u  # Subida
+Sd = S0 * d  # Bajada
+
+# Valor de la opción al final del periodo
+Cu = max(0, Su - K)  # Pago de la opción en la subida
+Cd = max(0, Sd - K)  # Pago de la opción en la bajada
+
+# Valor presente de la opción
+C0 = math.exp(-r * T) * (q * Cu + (1 - q) * Cd)
+
+print("El precio de la opción es:", round(C0, 2))
+
+NA=pi.transpose()*W
+NA
+
+# Solver tutorial
+# https://docs.sympy.org/latest/modules/solvers/solvers.html
+piNA=solve([NA[0],NA[1]],[pi_u,pi_d],dict=True)
+piNA
+
+# Parámetros de la opción
+q3 = symbols('q3')
+K = 20  # Precio de ejercicio
+
+# Parámetros ajustados para Banco Santander-Chile
+r, B = 1.01, 100  # r puede ajustarse si tienes datos específicos de tasa de interés.
+u, d, S0 = 1.5, 0.5, 19.97  # Basado en el crecimiento y caída esperados de la acción.
+
+# Extender la matriz W para incluir la opción
+W = Matrix([[-B, -S0, -q3],
+            [r*B, u*S0, max(0, u*S0 - K)],
+            [r*B, d*S0, max(0, d*S0 - K)]])
+W
 ```
 
-Por otro lado, también es de suma importancia tener en consideración los precios históricos del activo ENELCHILE, el cual actualmente tiene un valor promedio para el intervalo de años 2017-presente igual a `r round(mean(ENELCHILE$close),digits=0)`. A continuación se presentan dos gráficos que muestran estos datos históricos:
-
-```{r ENELCHILEline}
-#| echo: false
-ENELCHILE %>%
-    ggplot(aes(x = date, y = close)) +
-    geom_line() +
-    labs(title = "ENELCHILE Line Chart", y = "Closing Price", x = "") + 
-    theme_tq() +
-  geom_hline(yintercept=mean(ENELCHILE$close), linetype="dashed", color = "red")
+```{}
 ```
 
-```{r ENELCHILEcandle}
-#| warning: false
-ENELCHILE %>%
-    ggplot(aes(x = date, y = close)) +
-    geom_candlestick(aes(open = open, high = high, low = low, close = close)) +
-    labs(title = "ENELCHILE Candlestick Chart", y = "Closing Price", x = "") +
-    theme_tq()
+```{}
 ```
 
 ### Motivación
 
-Se escogió este activo en particular debido al compromiso con el medio ambiente y a indicadores ASG (Ambiental, Social y Gobernanza), alguno de sus objetivos son:
-
-Alcanzar un 80% de energía renovable en su matriz de generación para 2024, reducir las emisiones de gases de efecto invernadero en un 40% para 2025 y aumentar la eficiencia energética en un 20% para 2030.
-
-Como menciona el Diario Financiero (DF) Enel Chile sostiene una estrategia de sostenibilidad para llegar a ser una empresa carbono neutral al año 2040. Para lograr este objetivo, Enel destinará US\$1.700 millones a temas ASG, los que principalmente se gastarán en la construcción de nuevas plantas de energías renovables.
-
-Asimismo, varios documentos de la WOS (Web of Science) sustentan la iniciativa medioambiental de Enel Chile, principalmente con tarifas variables que logren cambiar los hábitos de uso de energía, homeostaticidad energética, entre otros.
-
-Todos estos puntos fomentan el interés especifico sobre este activo por sobre los demás activos energéticos incluidos en el IPSA.
+Se decidió analizar al Banco Santander en Chile y los derivados financieros que conllevan por el peso que tiene este en la economía dentro del país como internacionalmente. El banco ha demostrado estabilidad frente a los acontecimientos a nivel mundial que han afectado los mercados internacionales, donde esto lo presenta en una opción llamativa para los inversores interesados en mercados emergentes. Además, su capacidad de adaptación y crecimiento sostenido lo posiciona como un excelente objeto de estudio en este ámbito.
 
 ### Contexto
 
-El IPSA tiene 4 componentes de la industria de energía, Enel Chile S.A, Enel Latinoamerica S.A, Engie Energia Chile S.A y AES Gener SA. Los primeros 2 corresponden a la empresa italiana Enel. A continuación se presentan los precios históricos de cada una de estas acciones:
+Existen parámetros que afectan al valor de sus acciones y derivados tales como:
 
-```{r context}
-#| warning: false
-#| echo: false
-start <- end - weeks(6)
+Precio de la acción (S_0): El precio actual de las acciones de Banco Santander-Chile es de \$19.97. Este precio está influenciado por variables macroeconómicas como la política monetaria y el crecimiento económico del país.
 
-CL %>%
-    filter(date >= start - days(2 * 15)) %>%
-    ggplot(aes(x = date, y = close, group = symbol)) +
-    geom_line() +
-    labs(title = "Activos Energía IPSA", 
-         subtitle = "Comparativo de activos del sector",
-         y = "Precio al cierrew", x = "") + 
-    coord_x_date(xlim = c(start, end)) +
-    facet_wrap(~ symbol, ncol = 2, scale = "free_y") +
-    theme_tq()
+Beta o volatilidad: El beta de la acción es 0.55, esto nos dice que su volatilidad es menor en comparación con el mercado en general. Esto significa que las acciones del banco tienden a tener menos fluctuaciones, lo que puede ser llamativo para los inversores que prefieren menor riesgo.
+
+Tasa de dividendos: Con un rendimiento de dividendos del 3.78%, los inversores de Banco Santander-Chile reciben ingresos adicionales a traves pagos regulares, lo que resulta muy bueno para aquellos que buscan retornos estables.
+
+Luego se modelo el comportamiento de las acciones de Banco Santander-Chile en dos posibles escenarios de mercado, usando estos 2 supuestos:
+
+Escenario bueno: se asumio un crecimiento del 50% en el precio de las acciones, es decir un 𝑢=1.5. El precio proyectado de la acción es \$29.96.
+
+Escenario malo: Se asumio una caída del 50% en el precio de las acciones, es decir un 𝑑=0.5. El precio proyectado de la acción es \$9.99.
+
+```{}
 ```
-
-Si bien los montos de los precios dependen de otros factores, tales como la cantidad de acciones que componen la compañía, si se observan tendencias entre estas. La más clara es que ambas empresas de Enel siguen un mismo patrón de precios, lo que hace sentido ya que pertenecen al mismo grupo. Lo que también se aprecia, es que cuando el precio de Enel aumenta, tanto de Engie Energia Chile S.A como el de AES Gener SA disminuye. Esto se puede deber a que la variación en la participación que tiene en la industria cada uno de estas influye inversamente en la otra (a mayor participación de Enel Chile, menor será la de el resto de los suministradores nacionales).
-
-También es interesante ver las rentabilidades que ha tenido el activo elegido:
-
-![](Data/Screenshot%202023-09-28%20at%2017.57.54.png){fig-align="center" width="144"}
-
-A partir de esto se puede ver que Enel Chile ha tenido un crecimiento en la mayoría de los años, aunque se puede apreciar una baja de casi un 50% en el año 2021 debido a la pandemia de Covid-19. Cabe destacar que según analistas de Yahoo Finance, Enel Chile tendrá un crecimiento estimado cercano al 65,80%.
 
 ### Modelo Binomial
 
-El Modelo Binomial de Valoración de Opciones (BM, por sus siglas en inglés) también conocido como Cox-Ross-Rubinstein introducido en @cox1979, es un modelo que estima el valor de una opción en t=0 teniendo pagos futuros en diferentes estados (usualmente "Up" y "Down"). Este Modelo Binomial asume que no hay posibilidad de arbitraje en el mercado, determinando el precio que sigue un activo en un random walk, en donde en cada paso (tiempo) existe una probabilidad de que el precio suba o baje (Ahmad, 2018).
+Para valorar esta opción, utilizamos el modelo binomial, lo que hace este modelo es simular dos posibles caminos: uno donde el precio sube y otro donde el precio baja. Los parámetros que se usaron son:
 
-![Random Walk en BM de un paso (Ahmad, 2018)](Data/Screenshot%202023-10-19%20at%2010.33.38.png){fig-align="center"}
+-   Precio actual de la acción (S_0): \$19.97
 
-Para calcular la valoración de la opción con el Modelo Binomial, es necesario definir $S_0$, que corresponde al precio actual del activo. Además, se deben determinar los valores de $u$ y $d$, que representan los factores por los cuales se multiplica $S_0$ en cada estado para obtener el precio del activo en cada caso en el siguiente período (t = 1):
+-   Precio de ejercicio (K): \$20
 
-$$
-S_1 = \begin{cases}    S_0\cdot u \text{ en el estado ``Up"} \\    
-S_0\cdot d \text{ en el estado ``Down"}\end{cases}
-$$
+-   Factor de subida (u): 1.5 (esto significa que el precio puede subir un 50%).
 
-También se debe calcular la probabilidad $P$ de que ocurra el caso "Up", la probabilidad de que ocurra el otro caso ("Down") simplemete quedaría en $(1-P)$. Para el calculo de la porobabilidad se usa la siguiente ecuación:
+-   Factor de bajada (d): 0.5 (esto significa que el precio puede bajar un 50%).
 
-$$
-P = \frac{e^r-d}{u-d}
-$$
+-   Tasa libre de riesgo (r): 1% anual.
 
-Donde $r$ es la tasa libre de riesgo.
+-   Tiempo hasta el vencimiento (T): Un año.
 
-Por otro lado se deben calcular $C_u$ y $C_d$ los cuales se obtienen como los precios de una opción europea:
+Con estos datos, el precio de opción fue de \$5.03. Esto significa que, si las condiciones se mantienen, el precio justo que un inversor debería pagar por esta opción es alrededor de \$5.03.
 
-$$
-C_u = max(0, S_0\cdot u-k)\\
-C_d = max(0, S_0\cdot d-k)
-$$
-
-Finalmente el precio de la opción se calcula de la siguiente manera:
-
-$$
-V = \frac{C_u\cdot P + C_d\cdot (1-P)}{1+r}
-$$
-
-```{r}
-binomial_model <- function(cu, p, cd, rf) {
-  return((cu*p + cd*(1-p))/(1+rf))
-} 
-
-S <- tail(ENELCHILE$close,1)  # Precio actual del activo subyacente
-K <- 38  # Precio de ejercicio de la opción
-T <- 1  # Tiempo hasta la expiración (en años)
-r <- 0.0642 # Tasa de interés libre de riesgo
-u <- 1.1  # Factor de crecimiento en un paso hacia arriba
-d <- 0.9  # Factor de crecimiento en un paso hacia abajo
-
-Su <- S*u
-Sd <- S*d
-p <- (1+r-d)/((1+r)*(u-d))
-
-cu <- max(Su - K, 0)
-cd <- max(Sd - K, 0)
-
-
-print(paste("El precio de la opción con el Modelo Binomial es ", binomial_model(cu, p, cd, r)))
-
+```{}
 ```
 
 ### Modelo Black and Scholes (BS)
 
-```{r}
-black_scholes <- function(S, K, t, r, sigma) {
-    d1 <- (log(S/K) + (r + 0.5 * sigma^2) * t) / (sigma * sqrt(t))
-    d2 <- d1 - sigma * sqrt(t)
-    N_d1 <- pnorm(d1)
-    N_d2 <- pnorm(d2)
-    precio_call <- S * N_d1 - K * exp(-r * t) * N_d2
-    return(precio_call)
-  }
-  
-rendimientos <- diff(log(ENELCHILE$close))
-sigma<-sd(rendimientos[2:length(rendimientos)])
-volatilidad<-var(rendimientos[2:length(rendimientos)])
+Además del modelo binomial, también utilizamos el el modelo Black-Scholes para valorar la misma opción. Este modelo también toma en cuenta dos posibles caminos pero con algunas simplificaciones. El resultado que obtuvimos fue un precio de opción de \$4.94, que es un poco más bajo que el valor que se obtuvo con el modelo binomial.
 
-
-S<- tail(ENELCHILE$close,1) # Precio actual del activo subyacente
-K<- 38 # Precio de ejercicio de la opción
-R<- 0.0642 # Tasa de interés libre de riesgo
-t <- 1 # Tiempo hasta la expiración (en años)
-
-print(paste("El precio de la opción con el Modelo Black and Scholes es ", black_scholes(S, K, t, R, sigma)))
-
-
+```{}
 ```
 
 ### Comparación de modelos
 
-Ambos modelos son comúnmente utilizados en las finanzas. Por lo tanto, se puede afirmar que cuentan con respaldo y fundamentos sólidos. Según el artículo de (Ahmad, 2018), los resultados del precio de la opción calculados con ambos modelos muestran una correlación muy cercana a 1, lo que significa que si el precio de la opción aumenta con un modelo, también lo hace con el otro. Sin embargo, esto no implica que ambos modelos proporcionen el mismo precio, como se puede observar en el ejercicio realizado anteriormente.
+-   **Modelo Binomial**: Este modelo es más flexible porque nos permite simular diferentes caminos para el precio de la acción a lo largo del tiempo. En nuestro caso, dio un valor de \$5.03 para la opción. Esto sirve en situaciones donde esperamos más volatilidad o cambios bruscos en el precio de la acción.
 
-Estos modelos difieren en algunas cosas, tales como:
+-   **Modelo Discreto de Black-Scholes**: Este modelo es un poco más simple y da un valor más conservador para la opción. Es ideal para casos donde no esperamos mucha volatilidad y el precio sigue un patrón más predecible.
 
--   Precio del activo subyacente: En modelo Black and Scholes sigue una distribución lognormal mientras que el Binomial multiplica el valos $S_0$ con dos opciones ($u$ y $d$)
-
--   Debido a lo anterior, el modelo de Black and Scholes es continuo y el Binomial discreto.
-
--   El modelo BS sirve solo para opciones europeas, mientras que el Binomial también sirve para opciones americanas.
-
-También tienen algunas similitudes:
-
--   Ambos utilizan el precio actual del activo subyacente.
-
--   Ambos usan la tasa libre de riesgo.
-
--   En este caso los dos se usaron para un periodo de tiempo.
-
--   Ambos consideran la volatilidad del activo.
-
-En resumen, el modelo de Black-Scholes constituye una buena herramienta analítica para valorar opciones europeas y supone movimientos continuos en las cotizaciones del mercado. En cambio, el modelo Binomial ofrece mayor flexibilidad al emplear una estructura de árbol que facilita la valoración tanto de opciones europeas como americanas. Elegir uno u otro modelo dependerá del tipo específico de opción que se esté analizando y las inferencias que se quieran hacer en relación a cómo evolucionarán los precios en el mercado financiero.
+En resumen, ambos modelos ofrecen buenas estimaciones del valor de la opción, pero el modelo binomial puede capturar mejor las posibles fluctuaciones en el precio de la acción a lo largo del tiempo. Por otro lado, el modelo Black-Sholes es más fácil de usar pero puede subestimar el valor de la opción en escenarios más volátiles.
 
 # Hito 2 (en revisión):
 
